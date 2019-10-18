@@ -131,7 +131,69 @@ public:
    * Removes element with predefined value from tree
    * @param value value-field of deletable node
    */
-  void erase(const value_t &value) { throw; }
+  void erase(const value_t &value) {
+    auto indirect = &m_root;
+    std::vector<node **> path; // to update height values
+
+    while (*indirect && (*indirect)->value != value) {
+      path.push_back(indirect);
+
+      if ((*indirect)->value > value)
+        indirect = &((*indirect)->left);
+      else
+        indirect = &((*indirect)->right);
+    }
+
+    if (!*indirect) {
+      throw std::runtime_error("Element does not exist in tree");
+    } else {
+      path.push_back(indirect);
+    }
+
+    std::size_t index = path.size();
+
+    if (!(*indirect)->left && !(*indirect)->right) {
+      // the node is leaf, so we can just delete it
+      delete *indirect;
+      *indirect = nullptr;
+      path.pop_back();
+    } else if (!(*indirect)->right) {
+      // only left child exists
+      auto removable = *indirect;
+
+      *indirect = (*indirect)->left;
+      delete removable;
+      path.pop_back();
+    } else { // right child exists
+      auto successor = &((*indirect)->right);
+
+      while ((*successor)->left) {
+        path.push_back(successor);
+        successor = &((*successor)->left);
+      }
+
+      if (*successor == (*indirect)->right) {
+        (*successor)->left = (*indirect)->left;
+
+        auto removable = *indirect;
+        *indirect = *successor;
+        delete removable;
+      } else {
+        auto tmp = *path.back(), suc = *successor;
+
+        tmp->left = (*successor)->right;
+        suc->left = (*indirect)->left;
+        suc->right = (*indirect)->right;
+
+        delete *indirect;
+        *indirect = suc;
+        path[index] = &(suc->right);
+      }
+    }
+
+    balance(path);
+    m_size--;
+  }
 
   /**
    * Removes all elements from tree

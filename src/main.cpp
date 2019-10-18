@@ -18,6 +18,10 @@ int main(int argc, char **argv) {
     std::cout << "foo's pos = " << *foo_pos << std::endl;
 
     std::cout << "by this index = " << string_tree[*foo_pos] << std::endl;
+
+    string_tree.erase(string_tree[*foo_pos]);
+
+    std::cout << "size afte erase = " << string_tree.size() << std::endl;
   }
 
   return 0;
