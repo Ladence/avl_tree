@@ -267,14 +267,20 @@ public:
    * @param value value to compare the elements to
    * @return pos of the first element that is value-field >= value.
    */
-  std::size_t lower_bound(const value_t &value) const { throw; }
+  std::size_t lower_bound(const value_t &value) const {
+    // TODO: implement
+    throw;
+  }
 
   /**
    * Returns an pos of the first element in tree that is <= value
    * @param value value to compare the elements to
    * @return pos of the first element that is value-field <= value
    */
-  std::size_t upper_bound(const value_t &value) const { throw; }
+  std::size_t upper_bound(const value_t &value) const {
+    // TODO: implement
+    throw;
+  }
 
   /**
    * Returns mutable value (const ref) of findable node by index
