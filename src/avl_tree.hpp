@@ -219,7 +219,24 @@ public:
    * @param index index of element in tree
    * @return const reference to founded element
    */
-  const value_t &operator[](std::size_t index) const { throw; }
+  const value_t &operator[](std::size_t index) const {
+    auto cur = m_root;
+    auto left = cur->left ? cur->left->count : 0;
+
+    while (left != index) {
+      if (left < index) {
+        index -= left + 1;
+
+        cur = cur->right;
+        left = cur->left ? cur->left->count : 0;
+      } else {
+        cur = cur->left;
+        left = cur->left ? cur->left->count : 0;
+      }
+    }
+
+    return cur->value;
+  }
 
 private:
   std::size_t m_size;
