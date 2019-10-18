@@ -1,6 +1,8 @@
 #pragma once
 
 #include <algorithm>
+#include <stack>
+#include <vector>
 
 namespace trees {
 
@@ -10,7 +12,7 @@ template <typename value_t> class avl_tree {
    */
   struct node {
     node *left, *right;
-    const value_t val;
+    value_t value;
     int count;
     int height;
 
@@ -19,7 +21,7 @@ template <typename value_t> class avl_tree {
      * @param value value for V-field
      */
     explicit node(const value_t &value)
-        : val{value}, count{1}, height{1}, left{nullptr}, right{nullptr} {}
+        : value{value}, count{1}, height{1}, left{nullptr}, right{nullptr} {}
 
     /**
      * Re-calculcates values for successors after rotation
@@ -69,12 +71,61 @@ template <typename value_t> class avl_tree {
     }
   };
 
+  /**
+   * Does auto-balance tree after all operations
+   */
+  void balance(const std::vector<node *> &path) {
+    std::reverse(path.begin(), path.end());
+
+    for (auto indirect : path) {
+      indirect->update_values();
+
+      // left > left (right rotation)
+      if (indirect->balance_factor() >= 2 &&
+          indirect->left->balance_factor() >= 1) {
+        indirect = indirect->right_rotate();
+      } else if (indirect->balance_factor() >= 2) { // left > right
+        indirect->left = indirect->left->left_rotate();
+        indirect = indirect->right_rotate();
+      } else if (indirect->balance_factor() <= -2 &&
+                 indirect->right->balance_factor() <= 1) { // right > right
+        indirect = indirect->left_rotate();
+      } else if (indirect->balance_factor() <= -2) { // right < left
+        indirect->right = indirect->right->right_rotate();
+        indirect = indirect->left_rotate();
+      }
+    }
+  }
+
 public:
+  avl_tree() : m_root{nullptr}, m_size{0} {}
+  ~avl_tree() { clear(); }
+
   /**
    * Inserts node with predefined value in tree
    * @param value value-field of insertable node
    */
-  void insert(const value_t &value) { throw; }
+  void insert(const value_t &value) {
+    auto indirect = m_root;
+    std::vector<node *> path;
+
+    while (indirect) {
+      path.push_back(indirect);
+
+      if (indirect->value > value) {
+        indirect = indirect->left;
+      } else {
+        indirect = indirect->right;
+      }
+    }
+
+    indirect = new node(value);
+    path.push_back(indirect);
+
+    balance(path);
+    m_size++;
+  }
+
   /**
    * Removes element with predefined value from tree
    * @param value value-field of deletable node
@@ -84,19 +135,43 @@ public:
   /**
    * Removes all elements from tree
    */
-  void clear() { throw; }
+  void clear() {
+    std::stack<node *> stack;
+
+    if (m_root) {
+      stack.push(m_root);
+    }
+
+    while (!stack.empty()) {
+      auto node = stack.top();
+      stack.pop();
+
+      if (node->left) {
+        stack.push(node->left);
+      }
+
+      if (node->right) {
+        stack.push(node->right);
+      }
+
+      m_size--;
+      delete node;
+    }
+
+    m_root = nullptr;
+  }
 
   /**
    * Returns is the tree doesn't contain elements
    * @return true if no elements are present, else false
    */
-  bool empty() const { return m_size == 0; }
+  [[nodiscard]] bool empty() const { return m_size == 0; }
 
   /**
    * Returns tree's actual size (count of elements or nodes in tree)
    * @return actual size of tree
    */
-  std::size_t size() const { return m_size; }
+  [[nodiscard]] std::size_t size() const { return m_size; }
 
   /**
    * Returns position (index) in tree of element with predefined value field
@@ -128,6 +203,6 @@ public:
 
 private:
   std::size_t m_size;
-  node *root;
+  node *m_root;
 };
 }
