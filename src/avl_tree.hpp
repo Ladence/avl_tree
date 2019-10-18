@@ -74,25 +74,25 @@ template <typename value_t> class avl_tree {
   /**
    * Does auto-balance tree after all operations
    */
-  void balance(const std::vector<node *> &path) {
+  void balance(std::vector<node **> &path) {
     std::reverse(path.begin(), path.end());
 
     for (auto indirect : path) {
-      indirect->update_values();
+      (*indirect)->update_values();
 
       // left > left (right rotation)
-      if (indirect->balance_factor() >= 2 &&
-          indirect->left->balance_factor() >= 1) {
-        indirect = indirect->right_rotate();
-      } else if (indirect->balance_factor() >= 2) { // left > right
-        indirect->left = indirect->left->left_rotate();
-        indirect = indirect->right_rotate();
-      } else if (indirect->balance_factor() <= -2 &&
-                 indirect->right->balance_factor() <= 1) { // right > right
-        indirect = indirect->left_rotate();
-      } else if (indirect->balance_factor() <= -2) { // right < left
-        indirect->right = indirect->right->right_rotate();
-        indirect = indirect->left_rotate();
+      if ((*indirect)->balance_factor() >= 2 &&
+          (*indirect)->left->balance_factor() >= 1) {
+        *indirect = (*indirect)->right_rotate();
+      } else if ((*indirect)->balance_factor() >= 2) { // left > right
+        (*indirect)->left = (*indirect)->left->left_rotate();
+        *indirect = (*indirect)->right_rotate();
+      } else if ((*indirect)->balance_factor() <= -2 &&
+                 (*indirect)->right->balance_factor() <= 1) { // right > right
+        *indirect = (*indirect)->left_rotate();
+      } else if ((*indirect)->balance_factor() <= -2) { // right < left
+        (*indirect)->right = (*indirect)->right->right_rotate();
+        *indirect = (*indirect)->left_rotate();
       }
     }
   }
@@ -106,20 +106,20 @@ public:
    * @param value value-field of insertable node
    */
   void insert(const value_t &value) {
-    auto indirect = m_root;
-    std::vector<node *> path;
+    auto indirect = &m_root;
+    std::vector<node **> path;
 
-    while (indirect) {
+    while (*indirect) {
       path.push_back(indirect);
 
-      if (indirect->value > value) {
-        indirect = indirect->left;
+      if ((*indirect)->value > value) {
+        indirect = &((*indirect)->left);
       } else {
-        indirect = indirect->right;
+        indirect = &((*indirect)->right);
       }
     }
 
-    indirect = new node(value);
+    *indirect = new node(value);
     path.push_back(indirect);
 
     balance(path);
