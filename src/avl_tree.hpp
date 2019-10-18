@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <optional>
 #include <stack>
 #include <vector>
 
@@ -176,9 +177,28 @@ public:
   /**
    * Returns position (index) in tree of element with predefined value field
    * @param value desired value
-   * @return idx of desired element in tree
+   * @return idx of desired element in tree (or nullopt if there are no such
+   * element)
    */
-  std::size_t find(const value_t &value) const { throw; }
+  std::optional<std::size_t> find(const value_t &value) const {
+    auto direct = m_root;
+    std::size_t idx = 0;
+
+    while (direct && direct->value != value) {
+      if (direct->value > value) {
+        direct = direct->left;
+      } else {
+        idx += (direct->left ? direct->left->count : 0) + 1;
+        direct = direct->right;
+      }
+    }
+
+    if (!direct) {
+      return std::nullopt;
+    } else {
+      return idx + (direct->left ? direct->left->count : 0);
+    }
+  }
 
   /**
    * Returns an pos of the first element in tree that is >= value
